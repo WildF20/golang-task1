@@ -1,0 +1,3 @@
+module golang-task1
+
+go 1.25.5
