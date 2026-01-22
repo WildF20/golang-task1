@@ -1,16 +1,22 @@
 package handler
 
 import (
+	"strings"
+	"fmt"
 	"net/http"
 	"encoding/json"
+
+	"github.com/go-playground/validator/v10"
 
 	"golang-task1/model"
 	"golang-task1/model/structs"
 )
 
-func GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	categories := []model.Category{}
+var (
+	categories = []model.Category{}
+)
 
+func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	response := structs.SuccessResponse{
 		Status: true,
 		Message: "Success",
@@ -34,7 +40,42 @@ func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateCategory(w http.ResponseWriter, r *http.Request) {
-	return
+	var newCategory model.Category
+
+	if err := json.NewDecoder(r.Body).Decode(&newCategory); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status: false,
+			Message: "Invalid request payload",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	input := model.Category{
+		Name: newCategory.Name,
+		Description: newCategory.Description,
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(&input); err != nil {
+        var errMsg strings.Builder; errMsg.WriteString("Validation failed: ")
+        for _, fieldErr := range err.(validator.ValidationErrors) {
+            errMsg .WriteString(fmt.Sprintf("%s (%s), ", fieldErr.Field(), fieldErr.Tag()))
+        }
+        
+		errResponse := structs.ErrorResponse{
+			Status: false,
+			Message: errMsg.String(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
 }
 
 func UpdateCategory(w http.ResponseWriter, r *http.Request) {
