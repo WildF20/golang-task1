@@ -5,17 +5,27 @@ import (
 	"encoding/json"
 
 	"golang-task1/model"
+	"golang-task1/model/structs"
 )
 
-var categories = []model.Category{}
-
 func GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	categories := []model.Category{}
 
-	if err := json.NewEncoder(w).Encode(categories); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	response := structs.SuccessResponse{
+		Status: true,
+		Message: "Success",
+		Data: categories,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status: false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(errResponse)
 	}
 }
 
