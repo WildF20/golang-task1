@@ -3,20 +3,27 @@ package handler
 import (
 	"strings"
 	"fmt"
+	"sync"
 	"net/http"
 	"encoding/json"
 
 	"github.com/go-playground/validator/v10"
-
+	"github.com/oklog/ulid/v2"
+	
 	"golang-task1/model"
-	"golang-task1/model/structs"
+	"golang-task1/structs"
 )
 
 var (
-	categories = []model.Category{}
+	categories 	= []model.Category{}
+	mu         	= sync.RWMutex{}
+	validate 	= validator.New()
 )
 
 func GetAllCategories(w http.ResponseWriter, r *http.Request) {
+	mu.RLock()
+    defer mu.RUnlock()
+
 	response := structs.SuccessResponse{
 		Status: true,
 		Message: "Success",
@@ -32,6 +39,7 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(errResponse)
+		return
 	}
 }
 
@@ -40,12 +48,12 @@ func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateCategory(w http.ResponseWriter, r *http.Request) {
-	var newCategory model.Category
+	var payload model.Category
 
-	if err := json.NewDecoder(r.Body).Decode(&newCategory); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status: false,
-			Message: "Invalid request payload",
+			Message: err.Error(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -54,16 +62,15 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := model.Category{
-		Name: newCategory.Name,
-		Description: newCategory.Description,
+	newCategory := model.Category{
+		Name: payload.Name,
+		Description: payload.Description,
 	}
 
-	validate := validator.New()
-	if err := validate.Struct(&input); err != nil {
+	if err := validate.Struct(&payload); err != nil {
         var errMsg strings.Builder; errMsg.WriteString("Validation failed: ")
         for _, fieldErr := range err.(validator.ValidationErrors) {
-            errMsg .WriteString(fmt.Sprintf("%s (%s), ", fieldErr.Field(), fieldErr.Tag()))
+            errMsg.WriteString(fmt.Sprintf("%s (%s), ", fieldErr.Field(), fieldErr.Tag()))
         }
         
 		errResponse := structs.ErrorResponse{
@@ -76,6 +83,24 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(errResponse)
 		return
 	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	id := ulid.Make().String()
+	newCategory.ID = id
+
+	categories = append(categories, newCategory)
+
+	response := structs.SuccessResponse{
+		Status: true,
+		Message: "Category created successfully",
+		Data: newCategory,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
 }
 
 func UpdateCategory(w http.ResponseWriter, r *http.Request) {
