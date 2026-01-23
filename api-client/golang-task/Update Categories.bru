@@ -1,11 +1,11 @@
 meta {
-  name: Create Categories
+  name: Update Categories
   type: http
-  seq: 2
+  seq: 5
 }
 
-post {
-  url: http://127.0.0.1:8080/categories
+put {
+  url: http://127.0.0.1:8080/categories{{ID}}
   body: json
   auth: inherit
 }
@@ -15,6 +15,10 @@ body:json {
     "name" : "Kelas 3",
     "description" : "ini adalah kelas 3"
   }
+}
+
+vars:pre-request {
+  ID: 01KFMC88N0W8SDDKBD83N6AGKT
 }
 
 settings {

@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	categories 	= []model.Category{}
+	categories 	= make(map[string]*model.Category)
 	mu         	= sync.RWMutex{}
 	validate 	= validator.New()
 )
@@ -44,7 +44,44 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
-	return
+	idStr := r.PathValue("id")
+
+	if err := validate.Var(idStr, "required,ulid"); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status: false,
+			Message: "Invalid ID format",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	mu.RLock()
+	defer mu.RUnlock()
+
+	category, exists := categories[idStr]
+	if !exists {
+		errResponse := structs.ErrorResponse{
+			Status: false,
+			Message: "Category not found",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	response := structs.SuccessResponse{
+		Status: true,
+		Message: "Success",
+		Data: category,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +127,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	id := ulid.Make().String()
 	newCategory.ID = id
 
-	categories = append(categories, newCategory)
+	categories[newCategory.ID] = &newCategory
 
 	response := structs.SuccessResponse{
 		Status: true,
