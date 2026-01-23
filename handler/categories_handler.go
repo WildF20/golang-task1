@@ -217,5 +217,43 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteCategory(w http.ResponseWriter, r *http.Request) {
-	return
+	idStr := r.PathValue("id")
+
+	if err := validate.Var(idStr, "required,ulid"); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: "Invalid ID format",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	_, exists := categories[idStr]
+	if !exists {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: "Category not found",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	delete(categories, idStr)
+
+	response := structs.SuccessResponse{
+		Status:  true,
+		Message: "Category deleted successfully",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
