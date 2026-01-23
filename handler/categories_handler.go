@@ -169,6 +169,24 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := validate.Struct(&payload); err != nil {
+		var errMsg strings.Builder
+		errMsg.WriteString("Validation failed: ")
+		for _, fieldErr := range err.(validator.ValidationErrors) {
+			errMsg.WriteString(fmt.Sprintf("%s (%s), ", fieldErr.Field(), fieldErr.Tag()))
+		}
+
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: errMsg.String(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
 	category, exists := categories[idStr]
 	if !exists {
 		errResponse := structs.ErrorResponse{
