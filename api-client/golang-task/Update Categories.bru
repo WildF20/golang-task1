@@ -5,20 +5,20 @@ meta {
 }
 
 put {
-  url: http://127.0.0.1:8080/categories{{ID}}
+  url: http://127.0.0.1:8080/categories/{{ID}}
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "name" : "Kelas 3",
-    "description" : "ini adalah kelas 3"
+    "name" : "Kelas 5",
+    "description" : "ini adalah kelas 5"
   }
 }
 
 vars:pre-request {
-  ID: 01KFMC88N0W8SDDKBD83N6AGKT
+  ID: 01KFN2P22QHSRWXCYC6T4EYZ39
 }
 
 settings {
