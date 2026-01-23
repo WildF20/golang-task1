@@ -188,8 +188,6 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	category.Name = payload.Name
 	category.Description = payload.Description
 
-	categories[idStr] = category
-
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Category updated successfully",
