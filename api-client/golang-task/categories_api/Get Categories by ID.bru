@@ -1,17 +1,17 @@
 meta {
-  name: Delete Categories
+  name: Get Categories by ID
   type: http
-  seq: 6
+  seq: 2
 }
 
-delete {
-  url: http://127.0.0.1:8080/categories/{{ID}}
+get {
+  url: {{url}}categories/{{ID}}
   body: none
   auth: inherit
 }
 
 vars:pre-request {
-  ID: 01KFNCJNMW34Y9WH50SXHYPN39
+  ID: 01KFNCJZNXJ9QS115Y11TR5C9D
 }
 
 settings {

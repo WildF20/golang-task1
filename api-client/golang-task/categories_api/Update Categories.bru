@@ -1,11 +1,11 @@
 meta {
   name: Update Categories
   type: http
-  seq: 5
+  seq: 2
 }
 
 put {
-  url: http://127.0.0.1:8080/categories/{{ID}}
+  url: {{url}}categories/{{ID}}
   body: json
   auth: inherit
 }
