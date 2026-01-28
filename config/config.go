@@ -11,6 +11,8 @@ type Config struct {
 	Host    string `mapstructure:"HOST"`
 	Port    string `mapstructure:"PORT"`
 	Address string `mapstructure:"ADDRESS"`
+	
+	DBConn 	string `mapstructure:"DB_CONN"`
 }
 
 func LoadConfig() (Config, error) {
