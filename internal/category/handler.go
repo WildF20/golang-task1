@@ -1,4 +1,4 @@
-package handler
+package category
 
 import (
 	"encoding/json"
@@ -9,18 +9,16 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
-
-	"golang-task1/model"
 	"golang-task1/structs"
 )
 
 var (
-	categories = make(map[string]*model.Category)
+	categories = make(map[string]*Category)
 	mu         = sync.RWMutex{}
 	validate   = validator.New()
 )
 
-func GetAllCategories(w http.ResponseWriter, r *http.Request) {
+func GetAll(w http.ResponseWriter, r *http.Request) {
 	mu.RLock()
 	defer mu.RUnlock()
 
@@ -43,7 +41,7 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
+func GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
 	if err := validate.Var(idStr, "required,ulid"); err != nil {
@@ -84,8 +82,8 @@ func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func CreateCategory(w http.ResponseWriter, r *http.Request) {
-	var payload model.Category
+func Create(w http.ResponseWriter, r *http.Request) {
+	var payload Category
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -99,7 +97,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newCategory := model.Category{
+	newCategory := Category{
 		Name:        payload.Name,
 		Description: payload.Description,
 	}
@@ -141,8 +139,8 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func UpdateCategory(w http.ResponseWriter, r *http.Request) {
-	var payload model.Category
+func Update(w http.ResponseWriter, r *http.Request) {
+	var payload Category
 	idStr := r.PathValue("id")
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -216,7 +214,7 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func DeleteCategory(w http.ResponseWriter, r *http.Request) {
+func Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
 	if err := validate.Var(idStr, "required,ulid"); err != nil {

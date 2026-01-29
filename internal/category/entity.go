@@ -1,4 +1,4 @@
-package model
+package category
 
 type Category struct {
 	ID   		string  `json:"id" validate:"omitempty,ulid"`
