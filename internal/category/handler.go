@@ -18,7 +18,15 @@ var (
 	validate   = validator.New()
 )
 
-func GetAll(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	service *Service
+}
+
+func NewHandler(service *Service) *Handler {
+	return &Handler{service: service}
+}
+
+func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	mu.RLock()
 	defer mu.RUnlock()
 
@@ -41,7 +49,7 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
 	if err := validate.Var(idStr, "required,ulid"); err != nil {
@@ -82,7 +90,7 @@ func GetByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func Create(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var payload Category
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -139,7 +147,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func Update(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	var payload Category
 	idStr := r.PathValue("id")
 
@@ -214,7 +222,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
 	if err := validate.Var(idStr, "required,ulid"); err != nil {

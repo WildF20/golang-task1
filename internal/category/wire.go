@@ -5,5 +5,8 @@ import (
 )
 
 func RegisterCategoryWire(mux *http.ServeMux) {
-	RegisterCategoryRoutes(mux)
+	repo := NewRepository()
+	service := NewService(repo)
+	handler := NewHandler(service)
+	RegisterRoutes(mux, handler)
 }
