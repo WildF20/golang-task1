@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
-	"golang-task1/structs"
+	"golang-task1/internal/shared/structs"
 )
 
 var (
