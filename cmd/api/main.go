@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"golang-task1/core/app"
+	"golang-task1/internal/app"
 )
 
 func main() {
