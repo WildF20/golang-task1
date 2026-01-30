@@ -1,9 +1,9 @@
 package category
 
-type Service struct {
-	repo Repository
+type CategoryService struct {
+	repo *CategoryRepository
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewCategoryService(repo *CategoryRepository) *CategoryService {
+	return &CategoryService{repo: repo}
 }

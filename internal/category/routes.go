@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(mux *http.ServeMux, handler *Handler) {
+func RegisterRoutes(mux *http.ServeMux, handler *CategoryHandler) {
 	mux.HandleFunc("GET /categories", handler.GetAll)
 	mux.HandleFunc("GET /categories/{id}", handler.GetByID)
 	mux.HandleFunc("POST /categories", handler.Create)

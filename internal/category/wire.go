@@ -2,11 +2,12 @@ package category
 
 import (
 	"net/http"
+	"database/sql"
 )
 
-func RegisterCategoryWire(mux *http.ServeMux) {
-	repo := NewRepository()
-	service := NewService(repo)
-	handler := NewHandler(service)
+func RegisterCategoryWire(mux *http.ServeMux, db *sql.DB) {
+	repo := NewCategoryRepository(db)
+	service := NewCategoryService(repo)
+	handler := NewCategoryHandler(service)
 	RegisterRoutes(mux, handler)
 }
