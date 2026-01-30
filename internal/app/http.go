@@ -7,13 +7,8 @@ import (
 	"golang-task1/internal/shared/middleware"
 )
 
-func newHttpServer() error {
+func newHttpServer(mux *http.ServeMux) error {
 	cfg, _ := config.LoadConfig()
-	mux := http.NewServeMux()
-
-	if errWire := newWireServer(mux); errWire != nil {
-		return errWire
-	}
 
 	err := http.ListenAndServe(cfg.Address, middleware.Logging(mux))
 
