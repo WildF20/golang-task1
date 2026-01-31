@@ -12,7 +12,11 @@ type Config struct {
 	Port    string `mapstructure:"PORT"`
 	Address string `mapstructure:"ADDRESS"`
 	
-	DBConn 	string `mapstructure:"DB_CONN"`
+	DBUser 	string `mapstructure:"DB_USER"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBName 	string `mapstructure:"DB_NAME"`
+	DBHost 	string `mapstructure:"DB_HOST"`
+	DBPort 	string `mapstructure:"DB_PORT"`
 }
 
 func LoadConfig() (Config, error) {

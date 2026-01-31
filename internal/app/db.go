@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"log"
 
 	"golang-task1/config"
 	"golang-task1/database"
@@ -10,7 +11,10 @@ import (
 func newDBConnection() (*sql.DB, error) {
 	cfg, _ := config.LoadConfig()
 
-	db, err := database.InitDB(cfg.DBConn)
+	DBConn := "postgresql://" + cfg.DBUser + ":" + cfg.DBPassword + "@" + cfg.DBHost + ":" + cfg.DBPort + "/" + cfg.DBName
+	log.Println("DB_CONN =", DBConn)
+
+	db, err := database.InitDB(DBConn)
 	if err != nil {
 		return nil, err
 	}
