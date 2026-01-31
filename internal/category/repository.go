@@ -34,6 +34,16 @@ func (repo *CategoryRepository) GetAll() ([]Category, error) {
 	return categories, nil
 }
 
+func (repo *CategoryRepository) ExistsByID(id string) (bool, error) {
+	query := "SELECT COUNT(1) FROM categories WHERE id = $1"
+	var count int
+	err := repo.db.QueryRow(query, id).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (repo *CategoryRepository) GetByID(id string) (*Category, error) {
 	query := "SELECT id, name, description FROM categories WHERE id = $1"
 

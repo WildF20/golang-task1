@@ -200,6 +200,31 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	categoryExists, err := h.service.ExistsByID(idStr)
+	if err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	if !categoryExists {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: "Category not found",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
 	updatedCategory := &Category{
 		ID:          idStr,
 		Name:        payload.Name,
@@ -239,6 +264,31 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	categoryExists, err := h.service.ExistsByID(idStr)
+	if err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	if !categoryExists {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: "Category not found",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(errResponse)
 		return
 	}

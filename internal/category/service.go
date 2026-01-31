@@ -16,6 +16,10 @@ func (s *CategoryService) Create(data *Category) error {
 	return s.repo.Create(data)
 }
 
+func (s *CategoryService) ExistsByID(id string) (bool, error) {
+	return s.repo.ExistsByID(id)
+}
+
 func (s *CategoryService) GetByID(id string) (*Category, error) {
 	return s.repo.GetByID(id)
 }
