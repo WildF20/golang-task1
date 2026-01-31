@@ -1,29 +1,41 @@
-package handler
+package category
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/oklog/ulid/v2"
-
-	"golang-task1/model"
-	"golang-task1/structs"
+	"golang-task1/internal/shared/structs"
 )
 
 var (
-	categories = make(map[string]*model.Category)
-	mu         = sync.RWMutex{}
 	validate   = validator.New()
 )
 
-func GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	mu.RLock()
-	defer mu.RUnlock()
+type CategoryHandler struct {
+	service *CategoryService
+}
 
+func NewCategoryHandler(service *CategoryService) *CategoryHandler {
+	return &CategoryHandler{service: service}
+}
+
+func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	categories, err := h.service.GetAll()
+	if err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+	
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Success",
@@ -43,10 +55,10 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
+func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
-	if err := validate.Var(idStr, "required,ulid"); err != nil {
+	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Invalid ID format",
@@ -58,14 +70,11 @@ func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.RLock()
-	defer mu.RUnlock()
-
-	category, exists := categories[idStr]
-	if !exists {
+	category, err := h.service.GetByID(idStr)
+	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
-			Message: "Category not found",
+			Message: err.Error(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -84,8 +93,8 @@ func GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func CreateCategory(w http.ResponseWriter, r *http.Request) {
-	var payload model.Category
+func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var payload Category
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -99,7 +108,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newCategory := model.Category{
+	newCategory := Category{
 		Name:        payload.Name,
 		Description: payload.Description,
 	}
@@ -122,13 +131,17 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	if err := h.service.Create(&newCategory); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
 
-	id := ulid.Make().String()
-	newCategory.ID = id
-
-	categories[newCategory.ID] = &newCategory
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
 
 	response := structs.SuccessResponse{
 		Status:  true,
@@ -141,8 +154,8 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func UpdateCategory(w http.ResponseWriter, r *http.Request) {
-	var payload model.Category
+func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
+	var payload Category
 	idStr := r.PathValue("id")
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -157,7 +170,7 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validate.Var(idStr, "required,ulid"); err != nil {
+	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Invalid ID format",
@@ -187,8 +200,20 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, exists := categories[idStr]
-	if !exists {
+	categoryExists, err := h.service.ExistsByID(idStr)
+	if err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	if !categoryExists {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Category not found",
@@ -200,26 +225,38 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	updatedCategory := &Category{
+		ID:          idStr,
+		Name:        payload.Name,
+		Description: payload.Description,
+	}
 
-	category.Name = payload.Name
-	category.Description = payload.Description
+	if err := h.service.Update(updatedCategory); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
 
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Category updated successfully",
-		Data:    categories[idStr],
+		Data:    updatedCategory,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-func DeleteCategory(w http.ResponseWriter, r *http.Request) {
+func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
-	if err := validate.Var(idStr, "required,ulid"); err != nil {
+	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Invalid ID format",
@@ -231,11 +268,20 @@ func DeleteCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	categoryExists, err := h.service.ExistsByID(idStr)
+	if err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
 
-	_, exists := categories[idStr]
-	if !exists {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+
+	if !categoryExists {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Category not found",
@@ -247,11 +293,22 @@ func DeleteCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	delete(categories, idStr)
+	if err := h.service.Delete(idStr); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
 
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Category deleted successfully",
+		Data: nil,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
