@@ -14,7 +14,7 @@ func newDBConnection() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
+	// defer db.Close()
 
 	return db, nil
 }

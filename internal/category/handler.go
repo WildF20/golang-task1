@@ -58,7 +58,7 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
-	if err := validate.Var(idStr, "required,ulid"); err != nil {
+	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Invalid ID format",
@@ -170,7 +170,7 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validate.Var(idStr, "required,ulid"); err != nil {
+	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Invalid ID format",
@@ -256,7 +256,7 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
-	if err := validate.Var(idStr, "required,ulid"); err != nil {
+	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: "Invalid ID format",
