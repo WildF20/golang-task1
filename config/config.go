@@ -21,16 +21,19 @@ type Config struct {
 
 func LoadConfig() (Config, error) {
 	var config Config
+	v := viper.New() 
 
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	if _, err := os.Stat(".env"); err == nil {
-		viper.SetConfigFile(".env")
-		_ = viper.ReadInConfig()
-	}
+	if os.Getenv("APP_ENV") != "production" {
+        if _, err := os.Stat(".env"); err == nil {
+            v.SetConfigFile(".env")
+            _ = v.ReadInConfig()
+        }
+    }
 
-	err := viper.Unmarshal(&config)
+	err := v.Unmarshal(&config)
 	if err != nil {
 		return Config{}, err
 	}
