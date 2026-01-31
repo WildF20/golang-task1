@@ -5,16 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/oklog/ulid/v2"
 	"golang-task1/internal/shared/structs"
 )
 
 var (
-	categories = make(map[string]*Category)
-	mu         = sync.RWMutex{}
 	validate   = validator.New()
 )
 
@@ -27,9 +23,19 @@ func NewCategoryHandler(service *CategoryService) *CategoryHandler {
 }
 
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	mu.RLock()
-	defer mu.RUnlock()
+	categories, err := h.service.GetAll()
+	if err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
 
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
+	
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Success",
@@ -64,14 +70,11 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.RLock()
-	defer mu.RUnlock()
-
-	category, exists := categories[idStr]
-	if !exists {
+	category, err := h.service.GetByID(idStr)
+	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
-			Message: "Category not found",
+			Message: err.Error(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -128,13 +131,17 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	if err := h.service.Create(&newCategory); err != nil {
+		errResponse := structs.ErrorResponse{
+			Status:  false,
+			Message: err.Error(),
+		}
 
-	id := ulid.Make().String()
-	newCategory.ID = id
-
-	categories[newCategory.ID] = &newCategory
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errResponse)
+		return
+	}
 
 	response := structs.SuccessResponse{
 		Status:  true,
@@ -193,29 +200,28 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, exists := categories[idStr]
-	if !exists {
+	updatedCategory := &Category{
+		ID:          idStr,
+		Name:        payload.Name,
+		Description: payload.Description,
+	}
+
+	if err := h.service.Update(updatedCategory); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
-			Message: "Category not found",
+			Message: err.Error(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(errResponse)
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
-
-	category.Name = payload.Name
-	category.Description = payload.Description
-
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Category updated successfully",
-		Data:    categories[idStr],
+		Data:    updatedCategory,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -237,27 +243,22 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
-
-	_, exists := categories[idStr]
-	if !exists {
+	if err := h.service.Delete(idStr); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
-			Message: "Category not found",
+			Message: err.Error(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(errResponse)
 		return
 	}
 
-	delete(categories, idStr)
-
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Category deleted successfully",
+		Data: nil,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
