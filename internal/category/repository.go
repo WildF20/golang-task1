@@ -75,7 +75,7 @@ func (repo *CategoryRepository) Update(category *Category) error {
 	return nil
 }
 
-func (repo *CategoryRepository) Delete(id int) error {
+func (repo *CategoryRepository) Delete(id string) error {
 	query := "DELETE FROM categories WHERE id = $1"
 	result, err := repo.db.Exec(query, id)
 	if err != nil {
