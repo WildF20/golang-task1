@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"strings"
 	
 	"github.com/spf13/viper"
 )
@@ -24,7 +23,21 @@ func LoadConfig() (Config, error) {
 	v := viper.New() 
 
 	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	keys := []string{
+        "HOST",
+        "PORT",
+		"ADDRESS",
+        "DB_USER",
+        "DB_PASSWORD",
+        "DB_NAME",
+        "DB_HOST",
+        "DB_PORT",
+    }
+
+    for _, k := range keys {
+        _ = v.BindEnv(k)
+    }
 
 	if os.Getenv("APP_ENV") != "production" {
         if _, err := os.Stat(".env"); err == nil {
