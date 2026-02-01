@@ -13,25 +13,25 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (repo *ProductRepository) GetAll() ([]Product, error) {
-	query := "SELECT id, name, category_id, price, stock FROM products"
+func (repo *ProductRepository) GetAll() ([]ProductShow, error) {
+	query := "SELECT products.id, products.name, categories.name as category_name, products.price, products.stock FROM products JOIN categories ON products.category_id = categories.id"
 	rows, err := repo.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	categories := make([]Product, 0)
+	products := make([]ProductShow, 0)
 	for rows.Next() {
-		var p Product
-		err := rows.Scan(&p.ID, &p.Name, &p.CategoryID, &p.Price, &p.Stock)
+		var p ProductShow
+		err := rows.Scan(&p.ID, &p.Name, &p.CategoryName, &p.Price, &p.Stock)
 		if err != nil {
 			return nil, err
 		}
-		categories = append(categories, p)
+		products = append(products, p)
 	}
 
-	return categories, nil
+	return products, nil
 }
 
 func (repo *ProductRepository) ExistsByID(id string) (bool, error) {
@@ -44,13 +44,13 @@ func (repo *ProductRepository) ExistsByID(id string) (bool, error) {
 	return count > 0, nil
 }
 
-func (repo *ProductRepository) GetByID(id string) (*Product, error) {
-	query := "SELECT id, name, category_id, price, stock FROM products WHERE id = $1"
+func (repo *ProductRepository) GetByID(id string) (*ProductShow, error) {
+	query := "SELECT products.id, products.name, categories.name as category_name, products.price, products.stock FROM products JOIN categories ON products.category_id = categories.id WHERE products.id = $1"
 
-	var p Product
-	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.CategoryID, &p.Price, &p.Stock)
+	var p ProductShow
+	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.CategoryName, &p.Price, &p.Stock)
 	if err == sql.ErrNoRows {
-		return nil, errors.New("product tidak ditemukan")
+		return nil, errors.New("product not found")
 	}
 	if err != nil {
 		return nil, err

@@ -7,3 +7,11 @@ type Product struct {
 	Price 		int 	`json:"price" validate:"required"`
 	Stock 		int 	`json:"stock" validate:"required"`
 }
+
+type ProductShow struct {
+	ID   			string  `json:"id" validate:"omitempty,uuid"`
+	Name 			string 	`json:"name" validate:"required,min=3,max=100"`
+	CategoryName	string 	`json:"category_name" validate:"required"`
+	Price 			int 	`json:"price" validate:"required"`
+	Stock 			int 	`json:"stock" validate:"required"`
+}

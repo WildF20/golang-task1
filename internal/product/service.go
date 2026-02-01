@@ -17,7 +17,7 @@ func NewProductService(categoryChecker port.CategoryChecker,repo *ProductReposit
 	return &ProductService{categoryChecker: categoryChecker, repo: repo}
 }
 
-func (s *ProductService) GetAll() ([]Product, error) {
+func (s *ProductService) GetAll() ([]ProductShow, error) {
 	return s.repo.GetAll()
 }
 
@@ -38,7 +38,7 @@ func (s *ProductService) ExistsByID(id string) (bool, error) {
 	return s.repo.ExistsByID(id)
 }
 
-func (s *ProductService) GetByID(id string) (*Product, error) {
+func (s *ProductService) GetByID(id string) (*ProductShow, error) {
 	return s.repo.GetByID(id)
 }
 
