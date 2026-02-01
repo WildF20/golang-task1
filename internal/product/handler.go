@@ -1,4 +1,4 @@
-package category
+package product
 
 import (
 	"encoding/json"
@@ -6,24 +6,25 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"golang-task1/internal/shared/structs"
+
+	"github.com/go-playground/validator/v10"
 )
 
 var (
 	validate   = validator.New()
 )
 
-type CategoryHandler struct {
-	service *CategoryService
+type ProductHandler struct {
+	service *ProductService
 }
 
-func NewCategoryHandler(service *CategoryService) *CategoryHandler {
-	return &CategoryHandler{service: service}
+func NewProductHandler(service *ProductService) *ProductHandler {
+	return &ProductHandler{service: service}
 }
 
-func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.service.GetAll()
+func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	products, err := h.service.GetAll()
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
@@ -39,7 +40,7 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Success",
-		Data:    categories,
+		Data:    products,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -55,7 +56,7 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
 	if err := validate.Var(idStr, "required,uuid"); err != nil {
@@ -70,7 +71,7 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := h.service.GetByID(idStr)
+	product, err := h.service.GetByID(idStr)
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
@@ -86,15 +87,16 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	response := structs.SuccessResponse{
 		Status:  true,
 		Message: "Success",
-		Data:    category,
+		Data:    product,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var payload Category
+func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var payload Product
+	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -108,9 +110,11 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newCategory := Category{
+	newProduct := Product{
 		Name:        payload.Name,
-		Description: payload.Description,
+		CategoryID:  payload.CategoryID,
+		Price:       payload.Price,
+		Stock:       payload.Stock,
 	}
 
 	if err := validate.Struct(&payload); err != nil {
@@ -131,7 +135,7 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Create(&newCategory); err != nil {
+	if err := h.service.Create(ctx, &newProduct); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: err.Error(),
@@ -145,8 +149,8 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	response := structs.SuccessResponse{
 		Status:  true,
-		Message: "Category created successfully",
-		Data:    newCategory,
+		Message: "Product created successfully",
+		Data:    newProduct,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -154,10 +158,9 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
-	var payload Category
+func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
+	var payload Product
 	idStr := r.PathValue("id")
-	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -201,7 +204,7 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryExists, err := h.service.ExistsByID(ctx, idStr)
+	productExists, err := h.service.ExistsByID(idStr)
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
@@ -214,10 +217,10 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !categoryExists {
+	if !productExists {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
-			Message: "Category not found",
+			Message: "Product not found",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -226,13 +229,15 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedCategory := &Category{
+	updatedProduct := &Product{
 		ID:          idStr,
 		Name:        payload.Name,
-		Description: payload.Description,
+		CategoryID:  payload.CategoryID,
+		Price:       payload.Price,
+		Stock:       payload.Stock,
 	}
 
-	if err := h.service.Update(updatedCategory); err != nil {
+	if err := h.service.Update(updatedProduct); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: err.Error(),
@@ -246,17 +251,16 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	response := structs.SuccessResponse{
 		Status:  true,
-		Message: "Category updated successfully",
-		Data:    updatedCategory,
+		Message: "Product updated successfully",
+		Data:    updatedProduct,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-	ctx := r.Context()
 
 	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -270,7 +274,7 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryExists, err := h.service.ExistsByID(ctx, idStr)
+	productExists, err := h.service.ExistsByID(idStr)
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
@@ -283,10 +287,10 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !categoryExists {
+	if !productExists {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
-			Message: "Category not found",
+			Message: "Product not found",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -309,7 +313,7 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	response := structs.SuccessResponse{
 		Status:  true,
-		Message: "Category deleted successfully",
+		Message: "Product deleted successfully",
 		Data: nil,
 	}
 

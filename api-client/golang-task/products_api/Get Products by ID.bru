@@ -1,0 +1,24 @@
+meta {
+  name: Get Products by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{url}}products/{{ID}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  ID: f43fac66-5095-4c3f-b679-b7644f7008a7
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  Edit Vars ID with real id on database/stored memory
+}
