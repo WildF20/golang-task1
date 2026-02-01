@@ -1,18 +1,33 @@
 package product
 
+import (
+	"context"
+	"golang-task1/internal/product/port"
+)
+
 type ProductService struct {
 	repo *ProductRepository
+	categoryChecker port.CategoryChecker
 }
 
-func NewProductService(repo *ProductRepository) *ProductService {
-	return &ProductService{repo: repo}
+func NewProductService(categoryChecker port.CategoryChecker,repo *ProductRepository) *ProductService {
+	return &ProductService{categoryChecker: categoryChecker, repo: repo}
 }
 
 func (s *ProductService) GetAll() ([]Product, error) {
 	return s.repo.GetAll()
 }
 
-func (s *ProductService) Create(data *Product) error {
+func (s *ProductService) Create(ctx context.Context, data *Product) error {
+	exists, err := s.categoryChecker.ExistsByID(ctx, data.CategoryID)
+    if err != nil {
+        return err
+    }
+
+    if !exists {
+        return ErrCategoryNotFound
+    }
+
 	return s.repo.Create(data)
 }
 

@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"golang-task1/internal/shared/structs"
+
+	"github.com/go-playground/validator/v10"
 )
 
 var (
@@ -95,6 +96,7 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var payload Product
+	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -133,7 +135,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Create(&newProduct); err != nil {
+	if err := h.service.Create(ctx, &newProduct); err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
 			Message: err.Error(),
