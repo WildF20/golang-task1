@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"strings"
 	
 	"github.com/spf13/viper"
 )
@@ -12,21 +11,42 @@ type Config struct {
 	Port    string `mapstructure:"PORT"`
 	Address string `mapstructure:"ADDRESS"`
 	
-	DBConn 	string `mapstructure:"DB_CONN"`
+	DBUser 	string `mapstructure:"DB_USER"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBName 	string `mapstructure:"DB_NAME"`
+	DBHost 	string `mapstructure:"DB_HOST"`
+	DBPort 	string `mapstructure:"DB_PORT"`
 }
 
 func LoadConfig() (Config, error) {
 	var config Config
+	v := viper.New() 
 
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
 
-	if _, err := os.Stat(".env"); err == nil {
-		viper.SetConfigFile(".env")
-		_ = viper.ReadInConfig()
-	}
+	keys := []string{
+        "HOST",
+        "PORT",
+		"ADDRESS",
+        "DB_USER",
+        "DB_PASSWORD",
+        "DB_NAME",
+        "DB_HOST",
+        "DB_PORT",
+    }
 
-	err := viper.Unmarshal(&config)
+    for _, k := range keys {
+        _ = v.BindEnv(k)
+    }
+
+	if os.Getenv("APP_ENV") != "production" {
+        if _, err := os.Stat(".env"); err == nil {
+            v.SetConfigFile(".env")
+            _ = v.ReadInConfig()
+        }
+    }
+
+	err := v.Unmarshal(&config)
 	if err != nil {
 		return Config{}, err
 	}

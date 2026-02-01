@@ -10,7 +10,9 @@ import (
 func newDBConnection() (*sql.DB, error) {
 	cfg, _ := config.LoadConfig()
 
-	db, err := database.InitDB(cfg.DBConn)
+	DBConn := "postgresql://" + cfg.DBUser + ":" + cfg.DBPassword + "@" + cfg.DBHost + ":" + cfg.DBPort + "/" + cfg.DBName
+
+	db, err := database.InitDB(DBConn)
 	if err != nil {
 		return nil, err
 	}
