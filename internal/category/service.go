@@ -1,5 +1,7 @@
 package category
 
+import "context"
+
 type CategoryService struct {
 	repo *CategoryRepository
 }
@@ -16,8 +18,8 @@ func (s *CategoryService) Create(data *Category) error {
 	return s.repo.Create(data)
 }
 
-func (s *CategoryService) ExistsByID(id string) (bool, error) {
-	return s.repo.ExistsByID(id)
+func (s *CategoryService) ExistsByID(ctx context.Context, id string) (bool, error) {
+	return s.repo.ExistsByID(ctx, id)
 }
 
 func (s *CategoryService) GetByID(id string) (*Category, error) {

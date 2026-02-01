@@ -157,6 +157,7 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var payload Category
 	idStr := r.PathValue("id")
+	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -200,7 +201,7 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryExists, err := h.service.ExistsByID(idStr)
+	categoryExists, err := h.service.ExistsByID(ctx, idStr)
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,
@@ -255,6 +256,7 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
+	ctx := r.Context()
 
 	if err := validate.Var(idStr, "required,uuid"); err != nil {
 		errResponse := structs.ErrorResponse{
@@ -268,7 +270,7 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryExists, err := h.service.ExistsByID(idStr)
+	categoryExists, err := h.service.ExistsByID(ctx, idStr)
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,

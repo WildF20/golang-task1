@@ -1,6 +1,7 @@
 package category
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 )
@@ -34,10 +35,10 @@ func (repo *CategoryRepository) GetAll() ([]Category, error) {
 	return categories, nil
 }
 
-func (repo *CategoryRepository) ExistsByID(id string) (bool, error) {
+func (repo *CategoryRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
 	query := "SELECT COUNT(1) FROM categories WHERE id = $1"
 	var count int
-	err := repo.db.QueryRow(query, id).Scan(&count)
+	err := repo.db.QueryRowContext(ctx, query, id).Scan(&count)
 	if err != nil {
 		return false, err
 	}
