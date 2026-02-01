@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"database/sql"
 	"net/http"
 
@@ -9,8 +10,19 @@ import (
 )
 
 func newWireServer(mux *http.ServeMux, db *sql.DB) error {
-	category.RegisterCategoryWire(mux, db)
-	product.RegisterProductWire(mux, db)
+	categoryRepo := category.NewCategoryRepository(db)
+	categoryService := category.NewCategoryService(categoryRepo)
+	categoryHandler := category.NewCategoryHandler(categoryService)
+
+	productRepo := product.NewProductRepository(db)
+	productService := product.NewProductService(categoryService, productRepo)
+	productHandler := product.NewProductHandler(productService)
+
+	category.RegisterRoutes(mux, categoryHandler)
+	log.Println("Category module wired successfully")
+
+	product.RegisterRoutes(mux, productHandler)
+	log.Println("Product module wired successfully")
 	
 	return nil
 }
