@@ -1,6 +1,7 @@
 package product
 
 import (
+	"errors"
 	"context"
 	"golang-task1/internal/product/port"
 )
@@ -9,6 +10,8 @@ type ProductService struct {
 	repo *ProductRepository
 	categoryChecker port.CategoryChecker
 }
+
+var ErrCategoryNotFound = errors.New("category not found")
 
 func NewProductService(categoryChecker port.CategoryChecker,repo *ProductRepository) *ProductService {
 	return &ProductService{categoryChecker: categoryChecker, repo: repo}
