@@ -1,0 +1,27 @@
+meta {
+  name: Update Products
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{url}}products/{{ID}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name" : "Kelas 6",
+    "description" : "ini adalah kelas 6"
+  }
+}
+
+vars:pre-request {
+  ID: 74279c8f-a89d-478e-8f01-ee9ea781b573
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

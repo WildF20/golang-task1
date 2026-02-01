@@ -1,0 +1,24 @@
+meta {
+  name: Delete Products
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{url}}products/{{ID}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  ID: 40360a91-0e6e-4d71-808f-09c682856a50
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  Edit Vars ID with real id on database/stored memory
+}
