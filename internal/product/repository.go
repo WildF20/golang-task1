@@ -1,6 +1,7 @@
 package product
 
 import (
+	"strconv"
 	"database/sql"
 	"errors"
 )
@@ -13,9 +14,23 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (repo *ProductRepository) GetAll() ([]ProductShow, error) {
-	query := "SELECT products.id, products.name, categories.name as category_name, products.price, products.stock FROM products JOIN categories ON products.category_id = categories.id"
-	rows, err := repo.db.Query(query)
+func (repo *ProductRepository) GetAll(name string) ([]ProductShow, error) {
+	args := []interface{}{}
+	query := `SELECT 
+				products.id, 
+				products.name, 
+				categories.name as category_name, 
+				products.price, products.stock 
+			FROM products 
+			JOIN categories ON 
+				products.category_id = categories.id`
+
+	if name != "" {
+		args = append(args, name)
+		query += " WHERE products.name ILIKE '%' || $" + strconv.Itoa(len(args)) + " || '%'"
+	}
+
+	rows, err := repo.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

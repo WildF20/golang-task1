@@ -17,8 +17,8 @@ func NewProductService(categoryChecker port.CategoryChecker,repo *ProductReposit
 	return &ProductService{categoryChecker: categoryChecker, repo: repo}
 }
 
-func (s *ProductService) GetAll() ([]ProductShow, error) {
-	return s.repo.GetAll()
+func (s *ProductService) GetAll(name string) ([]ProductShow, error) {
+	return s.repo.GetAll(name)
 }
 
 func (s *ProductService) Create(ctx context.Context, data *Product) error {
