@@ -7,6 +7,7 @@ import (
 
 	"golang-task1/internal/category"
 	"golang-task1/internal/product"
+	"golang-task1/internal/transactions"
 )
 
 func newWireServer(mux *http.ServeMux, db *sql.DB) error {
@@ -18,11 +19,18 @@ func newWireServer(mux *http.ServeMux, db *sql.DB) error {
 	productService := product.NewProductService(categoryService, productRepo)
 	productHandler := product.NewProductHandler(productService)
 
+	transactionRepo := transactions.NewTransactionRepository(db)
+	transactionService := transactions.NewTransactionService(transactionRepo)
+	transactionHandler := transactions.NewTransactionHandler(transactionService)
+
 	category.RegisterRoutes(mux, categoryHandler)
 	log.Println("Category module wired successfully")
 
 	product.RegisterRoutes(mux, productHandler)
 	log.Println("Product module wired successfully")
+
+	transactions.RegisterRoutes(mux, transactionHandler)
+	log.Println("Transaction module wired successfully")
 	
 	return nil
 }
