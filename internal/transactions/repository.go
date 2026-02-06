@@ -3,6 +3,7 @@ package transactions
 import (
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 type TransactionRepository struct {
@@ -16,6 +17,7 @@ func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 func (repo *TransactionRepository) CreateTransaction(items []CheckoutItem) (*Transaction, error) {
 	tx, err := repo.db.Begin()
 	if err != nil {
+		log.Println("Error starting transaction:", err)
 		return nil, err
 	}
 	defer tx.Rollback()
@@ -40,6 +42,7 @@ func (repo *TransactionRepository) CreateTransaction(items []CheckoutItem) (*Tra
 
 		_, err = tx.Exec("UPDATE products SET stock = stock - $1 WHERE id = $2", item.Quantity, item.ProductID)
 		if err != nil {
+			log.Println("Error updating product stock:", err)
 			return nil, err
 		}
 
@@ -54,6 +57,7 @@ func (repo *TransactionRepository) CreateTransaction(items []CheckoutItem) (*Tra
 	var transactionID int
 	err = tx.QueryRow("INSERT INTO transactions (total_amount) VALUES ($1) RETURNING id", totalAmount).Scan(&transactionID)
 	if err != nil {
+		log.Println("Error inserting transaction:", err)
 		return nil, err
 	}
 
@@ -62,11 +66,13 @@ func (repo *TransactionRepository) CreateTransaction(items []CheckoutItem) (*Tra
 		_, err = tx.Exec("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)",
 			transactionID, details[i].ProductID, details[i].Quantity, details[i].Subtotal)
 		if err != nil {
+			log.Println("Error inserting transaction detail:", err)
 			return nil, err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
+		log.Println("Error committing transaction:", err)
 		return nil, err
 	}
 
