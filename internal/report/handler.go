@@ -13,7 +13,7 @@ func NewReportHandler(service *ReportService) *ReportHandler {
 }
 
 func (h *ReportHandler) GetRevenue(w http.ResponseWriter, r *http.Request) {
-
+	
 }
 
 func (h *ReportHandler) GetTodayRevenue(w http.ResponseWriter, r *http.Request) {

@@ -6,5 +6,5 @@ import (
 
 func RegisterRoutes(mux *http.ServeMux, handler *ReportHandler) {
 	mux.HandleFunc("GET /api/report", handler.GetRevenue)
-	mux.HandleFunc("POST /api/report/hari-ini", handler.GetTodayRevenue)
+	mux.HandleFunc("GET /api/report/hari-ini", handler.GetTodayRevenue)
 }
