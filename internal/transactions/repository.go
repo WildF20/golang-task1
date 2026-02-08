@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type TransactionRepository struct {
@@ -61,14 +62,32 @@ func (repo *TransactionRepository) CreateTransaction(items []CheckoutItem) (*Tra
 		return nil, err
 	}
 
-	for i := range details {
-		details[i].TransactionID = transactionID
-		_, err = tx.Exec("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)",
-			transactionID, details[i].ProductID, details[i].Quantity, details[i].Subtotal)
-		if err != nil {
-			log.Println("Error inserting transaction detail:", err)
-			return nil, err
-		}
+	values := []interface{}{}
+	query := "INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES "
+
+	placeholders := []string{}
+
+	for i, d := range details {
+		start := i*4 + 1
+
+		placeholders = append(placeholders,
+			fmt.Sprintf("($%d,$%d,$%d,$%d)", start, start+1, start+2, start+3),
+		)
+
+		values = append(values,
+			transactionID,
+			d.ProductID,
+			d.Quantity,
+			d.Subtotal,
+		)
+	}
+
+	query += strings.Join(placeholders, ",")
+	_, err = tx.Exec(query, values...)
+	
+	if err != nil {
+		log.Println("Error inserting transaction detail:", err)
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
