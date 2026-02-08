@@ -2,6 +2,8 @@ package report
 
 import (
 	"database/sql"
+	"time"
+	"context"
 )
 
 type ReportRepository struct {
@@ -12,11 +14,11 @@ func NewReportRepository(db *sql.DB) *ReportRepository {
 	return &ReportRepository{db: db}
 }
 
-func (r *ReportRepository) FetchRevenue(startDate string, endDate string) (Revenue, error) {
+func (r *ReportRepository) FetchRevenue(ctx context.Context, startDate, endDate time.Time) (Revenue, error) {
 	var revenue Revenue
 	var produkTerlaris ProdukTerlaris
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
 		select 
 			p.name as nama,
 			count(*) as qty_terjual
@@ -38,7 +40,7 @@ func (r *ReportRepository) FetchRevenue(startDate string, endDate string) (Reven
 		return revenue, err
 	}
 
-	err = r.db.QueryRow(`
+	err = r.db.QueryRowContext(ctx, `
 		select 
 			sum(t.total_amount) as total_revenue,
 			count(*) as total_transaksi
