@@ -10,8 +10,8 @@ func NewCategoryService(repo *CategoryRepository) *CategoryService {
 	return &CategoryService{repo: repo}
 }
 
-func (s *CategoryService) GetAll() ([]Category, error) {
-	return s.repo.GetAll()
+func (s *CategoryService) GetAll(name string) ([]Category, error) {
+	return s.repo.GetAll(name)
 }
 
 func (s *CategoryService) Create(data *Category) error {

@@ -1,6 +1,7 @@
 package category
 
 import (
+	"strconv"
 	"context"
 	"database/sql"
 	"errors"
@@ -14,9 +15,16 @@ func NewCategoryRepository(db *sql.DB) *CategoryRepository {
 	return &CategoryRepository{db: db}
 }
 
-func (repo *CategoryRepository) GetAll() ([]Category, error) {
+func (repo *CategoryRepository) GetAll(name string) ([]Category, error) {
 	query := "SELECT id, name, description FROM categories"
-	rows, err := repo.db.Query(query)
+	args := []interface{}{}
+
+	if name != "" {
+		args = append(args, name)
+		query += " WHERE name ILIKE '%' || $" + strconv.Itoa(len(args)) + " || '%'"
+	}
+
+	rows, err := repo.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

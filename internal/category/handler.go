@@ -23,7 +23,8 @@ func NewCategoryHandler(service *CategoryService) *CategoryHandler {
 }
 
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.service.GetAll()
+	name := r.URL.Query().Get("name")
+	categories, err := h.service.GetAll(name)
 	if err != nil {
 		errResponse := structs.ErrorResponse{
 			Status:  false,

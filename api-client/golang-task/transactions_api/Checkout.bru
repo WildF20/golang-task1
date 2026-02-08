@@ -1,0 +1,35 @@
+meta {
+  name: Checkout
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}api/checkout
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "items": [
+      {
+        "product_id": "f43fac66-5095-4c3f-b679-b7644f7008a7",
+        "quantity": 2
+      },
+      {
+        "product_id": "f43fac66-5095-4c3f-b679-b7644f7008a7",
+        "quantity": 1
+      },
+      {
+        "product_id": "dd60bd9c-f614-418a-8569-d81f460a10e7",
+        "quantity": 3
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
