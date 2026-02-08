@@ -1,0 +1,21 @@
+meta {
+  name: Get Revenue
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}api/report?start_date=2026-02-08&end_date=2026-02-09
+  body: none
+  auth: inherit
+}
+
+params:query {
+  start_date: 2026-02-08
+  end_date: 2026-02-09
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
