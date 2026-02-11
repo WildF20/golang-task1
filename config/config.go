@@ -10,6 +10,7 @@ type Config struct {
 	Host    string `mapstructure:"HOST"`
 	Port    string `mapstructure:"PORT"`
 	Address string `mapstructure:"ADDRESS"`
+	APIKey  string `mapstructure:"API_KEY"`
 	
 	DBUser 	string `mapstructure:"DB_USER"`
 	DBPassword string `mapstructure:"DB_PASSWORD"`
@@ -28,6 +29,8 @@ func LoadConfig() (Config, error) {
         "HOST",
         "PORT",
 		"ADDRESS",
+		"API_KEY",
+		
         "DB_USER",
         "DB_PASSWORD",
         "DB_NAME",

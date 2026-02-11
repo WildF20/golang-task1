@@ -10,7 +10,13 @@ import (
 func newHttpServer(mux *http.ServeMux) error {
 	cfg, _ := config.LoadConfig()
 
-	err := http.ListenAndServe(cfg.Address, middleware.Logging(mux))
+	handler := middleware.Chain(
+		mux,
+		middleware.Logging,
+		middleware.APIKey(cfg.APIKey),
+	)
+
+	err := http.ListenAndServe(cfg.Address, handler)
 
 	return err
 }
