@@ -13,6 +13,7 @@ func newHttpServer(mux *http.ServeMux) error {
 	handler := middleware.Chain(
 		mux,
 		middleware.Logging,
+		middleware.CORS,
 		middleware.APIKey(cfg.APIKey),
 	)
 
